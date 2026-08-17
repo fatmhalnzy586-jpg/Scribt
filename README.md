@@ -1,68 +1,102 @@
---[[
-    Abu Abed Hub - سكربت ابو عابد
-    Features: ESP, Silent Aim, Inf Stamina, FPS Boost
---]]
+-- Abu Abed Hub - Delta Executor Version
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Rights = Instance.new("TextLabel")
+local UIListLayout = Instance.new("UIListLayout")
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+-- GUI Main Setup
+ScreenGui.Parent = game.CoreGui
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Frame.Position = UDim2.new(0.3, 0, 0.2, 0)
+Frame.Size = UDim2.new(0, 250, 0, 320)
+Frame.Active = true
+Frame.Draggable = true
 
--- تصميم الواجهة بخلفية داكنة وأنيقة
-local Window = Library.CreateLib("قائمة الغش | ابو عابد", "DarkTheme")
+Title.Parent = Frame
+Title.Text = "قائمة الغش | ابو عابد"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 
--- التبويب الرئيسي
-local MainTab = Window:NewTab("الميزات الأساسية")
-local MainSection = MainTab:NewSection("التحكم والتصويب")
+UIListLayout.Parent = Frame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 5)
 
--- 1. كشف اللاعبين (ESP)
-MainSection:NewToggle("ESP", "تفعيل رؤية اللاعبين عبر الجدران", function(state)
-    _G.ESP_Enabled = state
-    if state then
-        -- كود تفعيل الـ ESP Box و Tracers
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= game.Players.LocalPlayer and v.Character and not v.Character:FindFirstChild("Highlight") then
-                local highlight = Instance.new("Highlight")
-                highlight.Parent = v.Character
-                highlight.FillColor = Color3.fromRGB(0, 255, 0)
+local function CreateToggle(name, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Frame
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = name .. ": OFF"
+    
+    local enabled = false
+    btn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            btn.Text = name .. ": ON"
+            btn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+        else
+            btn.Text = name .. ": OFF"
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        end
+        callback(enabled)
+    end)
+end
+
+-- 1. ESP
+CreateToggle("ESP", function(state)
+    _G.ESP = state
+    while _G.ESP do
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= game.Players.LocalPlayer and p.Character and not p.Character:FindFirstChild("AbedHighlight") then
+                local hl = Instance.new("Highlight")
+                hl.Name = "AbedHighlight"
+                hl.Parent = p.Character
+                hl.FillColor = Color3.fromRGB(0, 255, 0)
             end
         end
-    else
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v.Character and v.Character:FindFirstChild("Highlight") then
-                v.Character.Highlight:Destroy()
+        task.wait(1)
+    end
+    if not _G.ESP then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p.Character and p.Character:FindFirstChild("AbedHighlight") then
+                p.Character.AbedHighlight:Destroy()
             end
         end
     end
 end)
 
--- 2. التصويب التلقائي الخفي (Silent Aim)
-MainSection:NewToggle("Silent Aim", "تفعيل الايم بوت الخفي", function(state)
+-- 2. Silent Aim
+CreateToggle("Silent Aim", function(state)
     _G.SilentAim = state
 end)
 
--- 3. لياقة لا نهائية (Inf Stamina)
-MainSection:NewToggle("Inf Stamina", "ركض مستمر بدون استهلاك اللياقة", function(state)
+-- 3. Inf Stamina
+CreateToggle("Inf Stamina", function(state)
     _G.InfStamina = state
     game:GetService("RunService").RenderStepped:Connect(function()
-        if _G.InfStamina then
-            local char = game.Players.LocalPlayer.Character
-            if char and char:FindFirstChild("Stamina") then
-                char.Stamina.Value = 100
-            end
+        if _G.InfStamina and game.Players.LocalPlayer.Character then
+            local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = 30 end
         end
     end)
 end)
 
--- 4. تسريع اللعبة (FPS Boost)
-MainSection:NewToggle("FPS Boost", "تحسين الأداء وتقليل اللغلقة", function(state)
+-- 4. FPS Boost
+CreateToggle("FPS Boost", function(state)
     if state then
-        for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
-            if v:IsA("BasePart") then
-                v.Material = Enum.Material.SmoothPlastic
-            end
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end
         end
     end
 end)
 
--- تبويب المعلومات والحقوق
-local InfoTab = Window:NewTab("الحقوق")
-local InfoSection = InfoTab:NewSection("معلومات السكربت")
-InfoSection:NewLabel("سكربت بواسطة: ابو عابد")
+Rights.Parent = Frame
+Rights.Text = "سكربت بواسطة: ابو عابد"
+Rights.Size = UDim2.new(1, 0, 0, 30)
+Rights.TextColor3 = Color3.fromRGB(180, 180, 180)
+Rights.BackgroundTransparency = 1
