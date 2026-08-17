@@ -1,11 +1,9 @@
--- Abu Abed Hub - Delta Executor Version
 local ScreenGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
 local Rights = Instance.new("TextLabel")
 local UIListLayout = Instance.new("UIListLayout")
 
--- GUI Main Setup
 ScreenGui.Parent = game.CoreGui
 Frame.Parent = ScreenGui
 Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -70,9 +68,62 @@ CreateToggle("ESP", function(state)
     end
 end)
 
--- 2. Silent Aim
+-- 2. Silent Aim (محسن ومفعل مع FOV)
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Radius = 150
+FOVCircle.Color = Color3.fromRGB(255, 0, 0)
+FOVCircle.Thickness = 1
+FOVCircle.Filled = false
+FOVCircle.Visible = false
+
 CreateToggle("Silent Aim", function(state)
     _G.SilentAim = state
+    FOVCircle.Visible = state
+    
+    local Camera = workspace.CurrentCamera
+    local LocalPlayer = game.Players.LocalPlayer
+    
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if _G.SilentAim then
+            FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        end
+    end)
+    
+    local function GetClosestPlayer()
+        local Closest = nil
+        local MaxDist = FOVCircle.Radius
+        
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
+                if OnScreen then
+                    local MousePos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+                    local Dist = (Vector2.new(Pos.X, Pos.Y) - MousePos).Magnitude
+                    if Dist < MaxDist then
+                        Closest = v.Character.Head
+                        MaxDist = Dist
+                    end
+                end
+            end
+        end
+        return Closest
+    end
+    
+    local mt = getrawmetatable(game)
+    local old = mt.__namecall
+    setreadonly(mt, false)
+    
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if _G.SilentAim and (method == "FindPartOnRayWithIgnoreList" or method == "Raycast") then
+            local Target = GetClosestPlayer()
+            if Target then
+                return Target, Target.Position
+            end
+        end
+        return old(self, ...)
+    end)
+    setreadonly(mt, true)
 end)
 
 -- 3. Inf Stamina
