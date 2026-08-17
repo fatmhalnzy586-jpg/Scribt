@@ -1,153 +1,113 @@
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local Rights = Instance.new("TextLabel")
-local UIListLayout = Instance.new("UIListLayout")
+-- BlockSpin Ultimate Script (Underground Farm & Cheats)
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "BlockSpin Ultimate Hub 🔪", HidePremium = false, SaveConfig = true, ConfigFolder = "BlockSpinConfig"})
 
-ScreenGui.Parent = game.CoreGui
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-Frame.Position = UDim2.new(0.3, 0, 0.2, 0)
-Frame.Size = UDim2.new(0, 250, 0, 320)
-Frame.Active = true
-Frame.Draggable = true
+-- 1. Tab: Underground Farm & Godmode
+local FarmTab = Window:MakeTab({Name = "الصيد والمناعة", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
-Title.Parent = Frame
-Title.Text = "قائمة الغش | ابو عابد"
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-
-UIListLayout.Parent = Frame
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 5)
-
-local function CreateToggle(name, callback)
-    local btn = Instance.new("TextButton")
-    btn.Parent = Frame
-    btn.Size = UDim2.new(0.9, 0, 0, 40)
-    btn.Position = UDim2.new(0.05, 0, 0, 0)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Text = name .. ": OFF"
-    
-    local enabled = false
-    btn.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            btn.Text = name .. ": ON"
-            btn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-        else
-            btn.Text = name .. ": OFF"
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        end
-        callback(enabled)
-    end)
-end
-
--- 1. ESP
-CreateToggle("ESP", function(state)
-    _G.ESP = state
-    while _G.ESP do
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p ~= game.Players.LocalPlayer and p.Character and not p.Character:FindFirstChild("AbedHighlight") then
-                local hl = Instance.new("Highlight")
-                hl.Name = "AbedHighlight"
-                hl.Parent = p.Character
-                hl.FillColor = Color3.fromRGB(0, 255, 0)
-            end
-        end
-        task.wait(1)
-    end
-    if not _G.ESP then
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p.Character and p.Character:FindFirstChild("AbedHighlight") then
-                p.Character.AbedHighlight:Destroy()
-            end
-        end
-    end
-end)
-
--- 2. Silent Aim (محسن ومفعل مع FOV)
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Radius = 150
-FOVCircle.Color = Color3.fromRGB(255, 0, 0)
-FOVCircle.Thickness = 1
-FOVCircle.Filled = false
-FOVCircle.Visible = false
-
-CreateToggle("Silent Aim", function(state)
-    _G.SilentAim = state
-    FOVCircle.Visible = state
-    
-    local Camera = workspace.CurrentCamera
-    local LocalPlayer = game.Players.LocalPlayer
-    
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if _G.SilentAim then
-            FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-        end
-    end)
-    
-    local function GetClosestPlayer()
-        local Closest = nil
-        local MaxDist = FOVCircle.Radius
+-- Underground Fishing Farm (فارم الصيد تحت الأرض)
+FarmTab:AddToggle({
+    Name = "فارم الصيد تحت الأرض (Underground Fishing)",
+    Default = false,
+    Callback = function(Value)
+        _G.UndergroundFarm = Value
         
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
-                if OnScreen then
-                    local MousePos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-                    local Dist = (Vector2.new(Pos.X, Pos.Y) - MousePos).Magnitude
-                    if Dist < MaxDist then
-                        Closest = v.Character.Head
-                        MaxDist = Dist
+        task.spawn(function()
+            local player = game.Players.LocalPlayer
+            while _G.UndergroundFarm do
+                task.wait(0.1)
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    -- النزول بمسافة آمنة تحت الأرض لتفادي الهجمات ورؤية نقاط الصيد
+                    local currentPos = player.Character.HumanoidRootPart.Position
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(currentPos.X, -25, currentPos.Z)
+                    
+                    -- تفعيل أداة الصيد والضرب التلقائي
+                    local tool = player.Character:FindFirstChildOfClass("Tool")
+                    if tool then
+                        tool:Activate()
                     end
                 end
             end
-        end
-        return Closest
+        end)
     end
-    
-    local mt = getrawmetatable(game)
-    local old = mt.__namecall
-    setreadonly(mt, false)
-    
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if _G.SilentAim and (method == "FindPartOnRayWithIgnoreList" or method == "Raycast") then
-            local Target = GetClosestPlayer()
-            if Target then
-                return Target, Target.Position
+})
+
+-- Anti-Death / Godmode (مضاد الموت)
+FarmTab:AddToggle({
+    Name = "مضاد الموت (Godmode / Anti-Death)",
+    Default = false,
+    Callback = function(Value)
+        _G.GodMode = Value
+        
+        task.spawn(function()
+            while _G.GodMode do
+                task.wait(0.2)
+                local player = game.Players.LocalPlayer
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    -- إلغاء أوامر الموت والحفاظ على الصحة كاملة
+                    player.Character.Humanoid.Health = player.Character.Humanoid.MaxHealth
+                    player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+                end
             end
-        end
-        return old(self, ...)
-    end)
-    setreadonly(mt, true)
-end)
-
--- 3. Inf Stamina
-CreateToggle("Inf Stamina", function(state)
-    _G.InfStamina = state
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if _G.InfStamina and game.Players.LocalPlayer.Character then
-            local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if hum then hum.WalkSpeed = 30 end
-        end
-    end)
-end)
-
--- 4. FPS Boost
-CreateToggle("FPS Boost", function(state)
-    if state then
-        for _, v in pairs(game.Workspace:GetDescendants()) do
-            if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end
-        end
+        end)
     end
-end)
+})
 
-Rights.Parent = Frame
-Rights.Text = "سكربت بواسطة: ابو عابد"
-Rights.Size = UDim2.new(1, 0, 0, 30)
-Rights.TextColor3 = Color3.fromRGB(180, 180, 180)
-Rights.BackgroundTransparency = 1
+-- 2. Tab: Movement & Movement Hacks
+local MovementTab = Window:MakeTab({Name = "الحركة والعبور", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+
+-- Noclip (اختراق الجدران)
+MovementTab:AddToggle({
+    Name = "اختراق الجدران (Noclip)",
+    Default = false,
+    Callback = function(Value)
+        _G.Noclip = Value
+        
+        game:GetService("RunService").Stepped:Connect(function()
+            if _G.Noclip then
+                local character = game.Players.LocalPlayer.Character
+                if character then
+                    for _, part in pairs(character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+-- WalkSpeed Slider (السرعة)
+MovementTab:AddSlider({
+    Name = "السرعة (WalkSpeed)",
+    Min = 16,
+    Max = 300,
+    Default = 16,
+    Color = Color3.fromRGB(0, 255, 127),
+    Increment = 1,
+    ValueName = "Speed",
+    Callback = function(Value)
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end
+    end    
+})
+
+-- JumpPower Slider (القفز)
+MovementTab:AddSlider({
+    Name = "قوة القفز (JumpPower)",
+    Min = 50,
+    Max = 500,
+    Default = 50,
+    Color = Color3.fromRGB(0, 191, 255),
+    Increment = 1,
+    ValueName = "Jump",
+    Callback = function(Value)
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+        end
+    end    
+})
+
+OrionLib:Init()
