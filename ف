@@ -1,0 +1,56 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "BlockSpin Hub 🔪",
+    SubTitle = "Delta Edition",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Theme = "Dark"
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "الرئيسية", Icon = "home" })
+}
+
+Tabs.Main:AddSlider("SpeedSlider", {
+    Title = "السرعة (WalkSpeed)",
+    Default = 16,
+    Min = 16,
+    Max = 300,
+    Rounding = 1,
+    Callback = function(Value)
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+Tabs.Main:AddSlider("JumpSlider", {
+    Title = "قوة القفز (JumpPower)",
+    Default = 50,
+    Min = 50,
+    Max = 500,
+    Rounding = 1,
+    Callback = function(Value)
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+        end
+    end
+})
+
+Tabs.Main:AddToggle("NoclipToggle", {
+    Title = "اختراق الجدران (Noclip)",
+    Default = false,
+    Callback = function(Value)
+        _G.Noclip = Value
+        game:GetService("RunService").Stepped:Connect(function()
+            if _G.Noclip and game.Players.LocalPlayer.Character then
+                for _, part in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+})
