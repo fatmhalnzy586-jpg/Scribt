@@ -1,0 +1,124 @@
+-- Abu Abed Hub | BlockSpin Super Script
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local Rights = Instance.new("TextLabel")
+local UIListLayout = Instance.new("UIListLayout")
+
+ScreenGui.Parent = game.CoreGui
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+Frame.Position = UDim2.new(0.35, 0, 0.25, 0)
+Frame.Size = UDim2.new(0, 260, 0, 340)
+Frame.Active = true
+Frame.Draggable = true
+
+Title.Parent = Frame
+Title.Text = "🔪 BlockSpin | ابو عابد"
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.TextColor3 = Color3.fromRGB(0, 230, 255)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+
+UIListLayout.Parent = Frame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 5)
+
+local function CreateToggle(name, callback)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Frame
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = name .. ": OFF"
+    
+    local enabled = false
+    btn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            btn.Text = name .. ": ON"
+            btn.BackgroundColor3 = Color3.fromRGB(0, 180, 255)
+        else
+            btn.Text = name .. ": OFF"
+            btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+        end
+        callback(enabled)
+    end)
+end
+
+-- 1. صيد تلقائي وتحت الأرض (Underground Auto Fish & Farm)
+CreateToggle("Underground Auto Fish", function(state)
+    _G.Underground = state
+    task.spawn(function()
+        local LP = game.Players.LocalPlayer
+        while _G.Underground do
+            pcall(function()
+                if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                    -- التنزيل أسفل الأرض بمقدار آمن دون السقوط في الفراغ
+                    LP.Character.HumanoidRootPart.CFrame = LP.Character.HumanoidRootPart.CFrame * CFrame.new(0, -9, 0)
+                    
+                    -- محاكاة الضغط للتمكين والتلقائي
+                    local VU = game:GetService("VirtualUser")
+                    VU:CaptureController()
+                    VU:ClickButton1(Vector2.new(200, 200))
+                end
+            end)
+            task.wait(0.2)
+        end
+    end)
+end)
+
+-- 2. البيع التلقائي في متجر الشواء (BBQ Auto Sell)
+CreateToggle("Auto Sell BBQ (متجر الشواء)", function(state)
+    _G.AutoBBQ = state
+    task.spawn(function()
+        while _G.AutoBBQ do
+            pcall(function()
+                -- البحث عن ريموت البيع والـ BBQ الخاص بماب BlockSpin
+                for _, v in pairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+                    if v:IsA("RemoteEvent") and (string.find(string.lower(v.Name), "sell") or string.find(string.lower(v.Name), "bbq")) then
+                        v:FireServer()
+                    end
+                end
+            end)
+            task.wait(2)
+        end
+    end)
+end)
+
+-- 3. مضاد الموت والدم النهائي (God Mode / Anti-Death)
+CreateToggle("God Mode (مضاد الموت)", function(state)
+    _G.GodMode = state
+    game:GetService("RunService").Heartbeat:Connect(function()
+        if _G.GodMode and game.Players.LocalPlayer.Character then
+            local char = game.Players.LocalPlayer.Character
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.Health = hum.MaxHealth
+            end
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end)
+
+-- 4. إغلاق التصادم بالكامل (Noclip)
+CreateToggle("Noclip (عبور الجدران)", function(state)
+    _G.Noclip = state
+    game:GetService("RunService").Stepped:Connect(function()
+        if _G.Noclip and game.Players.LocalPlayer.Character then
+            for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
+            end
+        end
+    end)
+end)
+
+Rights.Parent = Frame
+Rights.Text = "حقوق السكربت: ابو عابد"
+Rights.Size = UDim2.new(1, 0, 0, 30)
+Rights.TextColor3 = Color3.fromRGB(150, 150, 150)
+Rights.BackgroundTransparency = 1
