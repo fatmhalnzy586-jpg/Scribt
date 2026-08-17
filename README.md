@@ -1,12 +1,10 @@
--- BlockSpin Script
 local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
 local Window = OrionLib:MakeWindow({Name = "BlockSpin Hub 🔪", HidePremium = false, SaveConfig = true, ConfigFolder = "FarmConfig"})
 
-local MainTab = Window:MakeTab({Name = "الرئيسية", Icon = "rbxassetid://4483345998", PremiumOnly = false})
+local MainTab = Window:MakeTab({Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false})
 
--- Movement Settings
 MainTab:AddSlider({
-    Name = "السرعة (WalkSpeed)",
+    Name = "WalkSpeed",
     Min = 16,
     Max = 300,
     Default = 16,
@@ -21,7 +19,7 @@ MainTab:AddSlider({
 })
 
 MainTab:AddSlider({
-    Name = "قوة القفز (JumpPower)",
+    Name = "JumpPower",
     Min = 50,
     Max = 500,
     Default = 50,
@@ -35,9 +33,8 @@ MainTab:AddSlider({
     end
 })
 
--- Noclip Toggle
 MainTab:AddToggle({
-    Name = "اختراق الجدران (Noclip)",
+    Name = "Noclip",
     Default = false,
     Callback = function(Value)
         _G.Noclip = Value
